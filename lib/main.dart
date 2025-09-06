@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:marketplace/data/model/product.dart';
-import 'package:marketplace/product_list_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketplace/data/datasources/auth_remote_data_source.dart';
+import 'package:marketplace/data/datasources/product_remote_data_source.dart';
+import 'package:marketplace/data/repositories/auth_repository_impl.dart';
+import 'package:marketplace/data/repositories/product_repository_impl.dart';
+import 'package:marketplace/domain/repositories/auth_repository.dart';
+import 'package:marketplace/domain/repositories/product_repository.dart';
+import 'package:marketplace/domain/usecases/get_auth_status.dart';
+import 'package:marketplace/domain/usecases/get_products.dart';
+import 'package:marketplace/domain/usecases/login.dart';
+import 'package:marketplace/domain/usecases/logout.dart';
+import 'package:marketplace/domain/usecases/place_bid.dart';
+import 'package:marketplace/presentation/authentication/bloc/authentication_bloc.dart';
+import 'package:marketplace/presentation/home/main_screen.dart';
+import 'package:marketplace/presentation/products/bloc/product_bloc.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,12 +24,48 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Product Bidding',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const ProductListPage(),
+    return MultiRepositoryProvider(
+      providers: [
+        // DATA SOURCES
+        RepositoryProvider<ProductRemoteDataSource>(
+          create: (context) => ProductRemoteDataSourceImpl(),
+        ),
+        RepositoryProvider<AuthRemoteDataSource>(
+          create: (context) => AuthRemoteDataSourceImpl(),
+        ),
+        // REPOSITORIES
+        RepositoryProvider<ProductRepository>(
+          create: (context) => ProductRepositoryImpl(
+            remoteDataSource: context.read<ProductRemoteDataSource>(),
+          ),
+        ),
+        RepositoryProvider<AuthRepository>(
+          create: (context) => AuthRepositoryImpl(
+            remoteDataSource: context.read<AuthRemoteDataSource>(),
+          ),
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => AuthenticationBloc(
+              getAuthStatus: GetAuthStatus(context.read<AuthRepository>()),
+              logout: Logout(context.read<AuthRepository>()),
+            )..add(AppStarted()),
+          ),
+          BlocProvider(
+            create: (context) => ProductBloc(
+              getProducts: GetProducts(context.read<ProductRepository>()),
+              placeBid: PlaceBid(context.read<ProductRepository>()),
+            )..add(LoadProducts()),
+          ),
+        ],
+        child: MaterialApp(
+          title: 'Product Bidding',
+          theme: ThemeData(primarySwatch: Colors.blue),
+          home: const MainScreen(),
+        ),
+      ),
     );
   }
 }
-
-// Updated Product class to include bidding details
