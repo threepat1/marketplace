@@ -1,39 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketplace/domain/repositories/auth_repository.dart';
+import 'package:marketplace/domain/usecases/register.dart';
 import 'package:marketplace/presentation/login/bloc/login_bloc.dart';
-import 'package:marketplace/presentation/register/register_page.dart';
+import 'package:marketplace/presentation/register/bloc/register_bloc.dart';
+import 'package:marketplace/presentation/register/bloc/register_event.dart';
+import 'package:marketplace/presentation/register/bloc/register_state.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatelessWidget {
+  const RegisterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login to Bid')),
-      body: const LoginForm(),
+      appBar: AppBar(title: const Text('Register')),
+      body: BlocProvider(
+        create: (context) {
+          return RegisterBloc(
+            registerUseCase: Register(context.read<AuthRepository>()),
+          );
+        },
+        child: const RegisterForm(),
+      ),
     );
   }
 }
 
-class LoginForm extends StatefulWidget {
-  const LoginForm({super.key});
+class RegisterForm extends StatefulWidget {
+  const RegisterForm({super.key});
+
   @override
-  State<LoginForm> createState() => _LoginFormState();
+  State<RegisterForm> createState() => _RegisterFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
-  final _usernameController = TextEditingController(text: 'flutter');
-  final _passwordController = TextEditingController(text: 'password');
+class _RegisterFormState extends State<RegisterForm> {
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    _onLoginButtonPressed() {
-      context.read<LoginBloc>().add(
-            LoginButtonPressed(
-              username: _usernameController.text,
-              password: _passwordController.text,
-            ),
-          );
+    _onRegisterButtonPressed() {
+      if (_passwordController.text == _confirmPasswordController.text) {
+        context.read<RegisterBloc>().add(
+              RegisterButtonPressed(
+                username: _usernameController.text,
+                password: _passwordController.text,
+              ),
+            );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Passwords do not match'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
 
     _onGoogleLoginButtonPressed() {
@@ -48,9 +70,9 @@ class _LoginFormState extends State<LoginForm> {
       context.read<LoginBloc>().add(LineLoginButtonPressed());
     }
 
-    return BlocListener<LoginBloc, LoginState>(
+    return BlocListener<RegisterBloc, RegisterState>(
       listener: (context, state) {
-        if (state is LoginFailure) {
+        if (state is RegisterFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
@@ -59,17 +81,17 @@ class _LoginFormState extends State<LoginForm> {
           );
         }
 
-        if (state is LoginSuccess) {
-          // THIS IS THE FIX:
-          // We only pop the navigator if this page was pushed onto the stack.
-          // If it was built directly (like in the MainScreen tab), we do nothing,
-          // because the MainScreen's BlocBuilder will handle the UI update.
-          if (Navigator.canPop(context)) {
-            Navigator.of(context).pop(true);
-          }
+        if (state is RegisterSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registration successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.of(context).pop();
         }
       },
-      child: BlocBuilder<LoginBloc, LoginState>(
+      child: BlocBuilder<RegisterBloc, RegisterState>(
         builder: (context, state) {
           return Padding(
             padding: const EdgeInsets.all(24.0),
@@ -89,13 +111,21 @@ class _LoginFormState extends State<LoginForm> {
                       labelText: 'Password', border: OutlineInputBorder()),
                   obscureText: true,
                 ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  decoration: const InputDecoration(
+                      labelText: 'Confirm Password',
+                      border: OutlineInputBorder()),
+                  obscureText: true,
+                ),
                 const SizedBox(height: 24),
-                if (state is LoginLoading)
+                if (state is RegisterLoading)
                   const Center(child: CircularProgressIndicator())
                 else
                   ElevatedButton(
-                    onPressed: _onLoginButtonPressed,
-                    child: const Text('LOGIN'),
+                    onPressed: _onRegisterButtonPressed,
+                    child: const Text('REGISTER'),
                   ),
                 const SizedBox(height: 16),
                 Row(
@@ -123,13 +153,9 @@ class _LoginFormState extends State<LoginForm> {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterPage(),
-                      ),
-                    );
+                    Navigator.of(context).pop();
                   },
-                  child: const Text('Don\'t have an account? Register'),
+                  child: const Text('Already have an account? Login'),
                 ),
               ],
             ),

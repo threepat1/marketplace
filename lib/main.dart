@@ -6,13 +6,17 @@ import 'package:marketplace/data/repositories/auth_repository_impl.dart';
 import 'package:marketplace/data/repositories/product_repository_impl.dart';
 import 'package:marketplace/domain/repositories/auth_repository.dart';
 import 'package:marketplace/domain/repositories/product_repository.dart';
+import 'package:marketplace/domain/usecases/facebook_login.dart';
 import 'package:marketplace/domain/usecases/get_auth_status.dart';
 import 'package:marketplace/domain/usecases/get_products.dart';
+import 'package:marketplace/domain/usecases/google_login.dart';
+import 'package:marketplace/domain/usecases/line_login.dart';
 import 'package:marketplace/domain/usecases/login.dart';
 import 'package:marketplace/domain/usecases/logout.dart';
 import 'package:marketplace/domain/usecases/place_bid.dart';
 import 'package:marketplace/presentation/authentication/bloc/authentication_bloc.dart';
 import 'package:marketplace/presentation/home/main_screen.dart';
+import 'package:marketplace/presentation/login/bloc/login_bloc.dart';
 import 'package:marketplace/presentation/products/bloc/product_bloc.dart';
 
 void main() {
@@ -58,6 +62,18 @@ class MyApp extends StatelessWidget {
               getProducts: GetProducts(context.read<ProductRepository>()),
               placeBid: PlaceBid(context.read<ProductRepository>()),
             )..add(LoadProducts()),
+          ),
+          BlocProvider(
+            create: (context) {
+              final authRepository = context.read<AuthRepository>();
+              return LoginBloc(
+                authenticationBloc: context.read<AuthenticationBloc>(),
+                loginUseCase: Login(authRepository),
+                googleLoginUseCase: GoogleLogin(authRepository),
+                facebookLoginUseCase: FacebookLogin(authRepository),
+                lineLoginUseCase: LineLogin(authRepository),
+              );
+            },
           ),
         ],
         child: MaterialApp(
