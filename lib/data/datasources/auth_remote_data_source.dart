@@ -5,7 +5,6 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<User> login(String username, String password);
   Future<void> register(String username, String password);
   Future<User> googleLogin();
   Future<User> facebookLogin();
@@ -19,21 +18,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   User? _currentUser;
 
   @override
-  Future<User> login(String username, String password) async {
-    await Future.delayed(const Duration(seconds: 1));
-    if (username == 'flutter' && password == 'password') {
-      _currentUser = const User(id: '123', name: 'FlutterDev');
-      return _currentUser!;
-    } else {
-      throw Exception('Incorrect username or password.');
-    }
-  }
-
-  @override
   Future<void> register(String username, String password) async {
     await Future.delayed(const Duration(seconds: 1));
-    // In a real app, you would send the registration data to your backend
-    // and handle potential errors, like a username already being taken.
+
     print('User registered: $username');
   }
 
@@ -55,25 +42,63 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     await Future.delayed(const Duration(seconds: 1));
     // In a real app, you would use the google_sign_in package to get the user's account
     // and then send the token to your backend to create or authenticate the user.
-    _currentUser = const User(id: 'google_user_id', name: 'Google User');
+    _currentUser =
+        const User(id: 'google_user_id', name: 'Google User', surname: '');
     return _currentUser!;
   }
 
   @override
+  @override
   Future<User> facebookLogin() async {
     await Future.delayed(const Duration(seconds: 1));
-    // In a real app, you would use the flutter_facebook_auth package to get the user's account
-    // and then send the token to your backend to create or authenticate the user.
-    _currentUser = const User(id: 'facebook_user_id', name: 'Facebook User');
+    final result = await FacebookAuth.i.login(
+      permissions: [
+        'email',
+        'public_profile',
+        'user_birthday',
+        'user_friends',
+        'user_gender',
+        'user_link'
+      ],
+    );
+    if (result.status == LoginStatus.success) {
+      final userData = await FacebookAuth.i.getUserData(
+        fields: "name,email,picture.width(200),birthday,gender",
+      );
+      // Insert the user data into _currentUser
+      _currentUser = User(
+        id: '',
+        name: userData['name'] as String,
+        surname: '',
+        email: userData['email'] as String?,
+        birthday: userData['birthday'] as String?,
+        gender: userData['gender'] as String?,
+      );
+    } else {
+      // Handle login failure
+      // For example, throw an exception
+      throw Exception('Facebook login failed: ${result.message}');
+    }
+    // Return _currentUser
     return _currentUser!;
   }
 
   @override
   Future<User> lineLogin() async {
     await Future.delayed(const Duration(seconds: 1));
-    // In a real app, you would use the flutter_line_sdk package to get the user's account
-    // and then send the token to your backend to create or authenticate the user.
-    _currentUser = const User(id: 'line_user_id', name: 'Line User');
+    final result = await LineSDK.instance.login();
+    if (result.accessToken.value != null || result.accessToken.value != "") {
+      final userData = await LineSDK.instance.getProfile();
+      _currentUser = User(
+        id: 'backend_gen_id_3',
+        name: userData.displayName,
+        surname: '', // LINE API doesn't provide a separate surname
+        email: null,
+        birthday: null,
+        gender: null,
+      );
+    }
+
     return _currentUser!;
   }
 }

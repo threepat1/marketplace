@@ -1,4 +1,4 @@
-package com.example.marketplace
+package com.icando.marketplace
 
 import io.flutter.embedding.android.FlutterActivity
 

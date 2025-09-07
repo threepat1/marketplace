@@ -11,7 +11,6 @@ import 'package:marketplace/domain/usecases/get_auth_status.dart';
 import 'package:marketplace/domain/usecases/get_products.dart';
 import 'package:marketplace/domain/usecases/google_login.dart';
 import 'package:marketplace/domain/usecases/line_login.dart';
-import 'package:marketplace/domain/usecases/login.dart';
 import 'package:marketplace/domain/usecases/logout.dart';
 import 'package:marketplace/domain/usecases/place_bid.dart';
 import 'package:marketplace/presentation/authentication/bloc/authentication_bloc.dart';
@@ -68,7 +67,6 @@ class MyApp extends StatelessWidget {
               final authRepository = context.read<AuthRepository>();
               return LoginBloc(
                 authenticationBloc: context.read<AuthenticationBloc>(),
-                loginUseCase: Login(authRepository),
                 googleLoginUseCase: GoogleLogin(authRepository),
                 facebookLoginUseCase: FacebookLogin(authRepository),
                 lineLoginUseCase: LineLogin(authRepository),

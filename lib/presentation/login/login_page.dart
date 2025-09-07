@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketplace/presentation/login/bloc/login_bloc.dart';
+import 'package:marketplace/presentation/profile_form/profile_form.dart';
 import 'package:marketplace/presentation/register/register_page.dart';
 
 class LoginPage extends StatelessWidget {
@@ -27,15 +28,6 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    _onLoginButtonPressed() {
-      context.read<LoginBloc>().add(
-            LoginButtonPressed(
-              username: _usernameController.text,
-              password: _passwordController.text,
-            ),
-          );
-    }
-
     _onGoogleLoginButtonPressed() {
       context.read<LoginBloc>().add(GoogleLoginButtonPressed());
     }
@@ -59,11 +51,17 @@ class _LoginFormState extends State<LoginForm> {
           );
         }
 
+        // New logic: Check for LoginSuccess to show the form.
         if (state is LoginSuccess) {
-          // THIS IS THE FIX:
-          // We only pop the navigator if this page was pushed onto the stack.
-          // If it was built directly (like in the MainScreen tab), we do nothing,
-          // because the MainScreen's BlocBuilder will handle the UI update.
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => ProfileCompletionPage(user: state.user),
+            ),
+          );
+        }
+
+        // New logic: Check for LoginCompleted to navigate directly to the app.
+        if (state is LoginCompleted) {
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop(true);
           }
@@ -77,46 +75,25 @@ class _LoginFormState extends State<LoginForm> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                      labelText: 'Username', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                      labelText: 'Password', border: OutlineInputBorder()),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 24),
-                if (state is LoginLoading)
-                  const Center(child: CircularProgressIndicator())
-                else
-                  ElevatedButton(
-                    onPressed: _onLoginButtonPressed,
-                    child: const Text('LOGIN'),
-                  ),
-                const SizedBox(height: 16),
-                Row(
+                Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton.icon(
                       onPressed: _onGoogleLoginButtonPressed,
-                      icon: const Icon(Icons.g_mobiledata),
-                      label: const Text('Google'),
+                      icon: const Icon(Icons.gamepad),
+                      label: const Text('Log in with Google'),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(height: 8),
                     ElevatedButton.icon(
                       onPressed: _onFacebookLoginButtonPressed,
                       icon: const Icon(Icons.facebook),
-                      label: const Text('Facebook'),
+                      label: const Text('Log in with Facebook'),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(height: 8),
                     ElevatedButton.icon(
                       onPressed: _onLineLoginButtonPressed,
-                      icon: const Icon(Icons.line_axis),
-                      label: const Text('Line'),
+                      icon: const Icon(Icons.line_style),
+                      label: const Text('Log in with Line'),
                     ),
                   ],
                 ),
