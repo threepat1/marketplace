@@ -5,19 +5,23 @@ import Config
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
-config :marketplace_backend, MarketplaceBackend.Repo,
-  username: "postgres",
-  password: "postgres",
+
+config :marketplace, Marketplace.Repo,
+  username: "jules",
+  password: "password",
   hostname: "localhost",
-  database: "marketplace_backend_test#{System.get_env("MIX_TEST_PARTITION")}",
+  database: "marketplace_test#{System.get_env("MIX_TEST_PARTITION")}",
+
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :marketplace_backend, MarketplaceBackendWeb.Endpoint,
+
+config :marketplace, MarketplaceWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "5db/KKDAjCMRjRjpDHUxz7JmGXEq7n3Q/NlT2Dei3UxwvRwXxm4c1i/PWqzwlRcn",
+  secret_key_base: "vr6zrb3wD8SoaFLIhDtN+4Q2MbmTHij5EsgOMlt9j8A1Fp2gaTYBwW977R2TEr4n",
+
   server: false
 
 # Print only warnings and errors during test

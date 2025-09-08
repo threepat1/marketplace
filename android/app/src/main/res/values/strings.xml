@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="app_name">marketplace</string>
+   <string name="facebook_app_id">786019464354274</string>
+   <string name="fb_login_protocol_scheme">fb786019464354274</string>
+   <string name="facebook_client_token">786019464354274|_UU48oVWmZ4ycR-EF1iLqjDQB0M</string>
+</resources>

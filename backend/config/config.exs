@@ -7,45 +7,25 @@
 # General application configuration
 import Config
 
-config :marketplace_backend,
-  ecto_repos: [MarketplaceBackend.Repo],
+
+config :marketplace,
+  ecto_repos: [Marketplace.Repo],
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
-config :marketplace_backend, MarketplaceBackendWeb.Endpoint,
+config :marketplace, MarketplaceWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [json: MarketplaceBackendWeb.ErrorJSON],
+    formats: [json: MarketplaceWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: MarketplaceBackend.PubSub,
-  live_view: [signing_salt: "AGjbSNev"]
-
-# Configure esbuild (the version is required)
-config :esbuild,
-  version: "0.17.11",
-  marketplace_backend: [
-    args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
-    cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
-  ]
-
-# Configure tailwind (the version is required)
-config :tailwind,
-  version: "3.4.0",
-  marketplace_backend: [
-    args: ~w(
-      --config=tailwind.config.js
-      --input=css/app.css
-      --output=../priv/static/assets/app.css
-    ),
-    cd: Path.expand("../assets", __DIR__)
-  ]
+  pubsub_server: Marketplace.PubSub,
+  live_view: [signing_salt: "WD8qa9LA"]
 
 # Configures Elixir's Logger
-config :logger, :console,
+config :logger, :default_formatter,
+
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 

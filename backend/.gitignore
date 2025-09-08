@@ -23,14 +23,6 @@ erl_crash.dump
 /tmp/
 
 # Ignore package tarball (built via "mix hex.build").
-marketplace_backend-*.tar
 
-# Ignore assets that are produced by build tools.
-/priv/static/assets/
+marketplace-*.tar
 
-# Ignore digested assets cache.
-/priv/static/cache_manifest.json
-
-# In case you use Node.js/npm, you want to ignore these.
-npm-debug.log
-/assets/node_modules/

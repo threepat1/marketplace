@@ -1,15 +1,20 @@
-defmodule MarketplaceBackend.MixProject do
+
+defmodule Marketplace.MixProject do
+
   use Mix.Project
 
   def project do
     [
-      app: :marketplace_backend,
+
+      app: :marketplace,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      listeners: [Phoenix.CodeReloader]
+
     ]
   end
 
@@ -18,10 +23,20 @@ defmodule MarketplaceBackend.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {MarketplaceBackend.Application, []},
+
+      mod: {Marketplace.Application, []},
+
       extra_applications: [:logger, :runtime_tools]
     ]
   end
+
+
+  def cli do
+    [
+      preferred_envs: [precommit: :test]
+    ]
+  end
+
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
@@ -32,27 +47,19 @@ defmodule MarketplaceBackend.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.11"},
-      {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.10"},
+
+      {:phoenix, "~> 1.8.1"},
+      {:phoenix_ecto, "~> 4.5"},
+      {:ecto_sql, "~> 3.13"},
       {:postgrex, ">= 0.0.0"},
-      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
-      {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.1.1",
-       sparse: "optimized",
-       app: false,
-       compile: false,
-       depth: 1},
-      {:telemetry_metrics, "~> 0.6"},
+      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.20"},
+      {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.2"},
-      {:joken, "~> 2.5"},
-      {:bcrypt_elixir, "~> 3.0"}
+      {:dns_cluster, "~> 0.2.0"},
+      {:bandit, "~> 1.5"}
+
     ]
   end
 
@@ -64,17 +71,13 @@ defmodule MarketplaceBackend.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+
+      setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind marketplace_backend", "esbuild marketplace_backend"],
-      "assets.deploy": [
-        "tailwind marketplace_backend --minify",
-        "esbuild marketplace_backend --minify",
-        "phx.digest"
-      ]
+      precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
+
     ]
   end
 end

@@ -1,2 +1,4 @@
 ExUnit.start()
-Ecto.Adapters.SQL.Sandbox.mode(MarketplaceBackend.Repo, :manual)
+
+Ecto.Adapters.SQL.Sandbox.mode(Marketplace.Repo, :manual)
+

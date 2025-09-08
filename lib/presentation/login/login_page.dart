@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:marketplace/domain/repositories/auth_repository.dart';
-import 'package:marketplace/domain/usecases/login.dart';
-import 'package:marketplace/presentation/authentication/bloc/authentication_bloc.dart';
 import 'package:marketplace/presentation/login/bloc/login_bloc.dart';
+import 'package:marketplace/presentation/profile_form/profile_form.dart';
+import 'package:marketplace/presentation/register/register_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -12,15 +11,7 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login to Bid')),
-      body: BlocProvider(
-        create: (context) {
-          return LoginBloc(
-            authenticationBloc: BlocProvider.of<AuthenticationBloc>(context),
-            loginUseCase: Login(context.read<AuthRepository>()),
-          );
-        },
-        child: const LoginForm(),
-      ),
+      body: const LoginForm(),
     );
   }
 }
@@ -37,13 +28,16 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    _onLoginButtonPressed() {
-      context.read<LoginBloc>().add(
-            LoginButtonPressed(
-              username: _usernameController.text,
-              password: _passwordController.text,
-            ),
-          );
+    _onGoogleLoginButtonPressed() {
+      context.read<LoginBloc>().add(GoogleLoginButtonPressed());
+    }
+
+    _onFacebookLoginButtonPressed() {
+      context.read<LoginBloc>().add(FacebookLoginButtonPressed());
+    }
+
+    _onLineLoginButtonPressed() {
+      context.read<LoginBloc>().add(LineLoginButtonPressed());
     }
 
     return BlocListener<LoginBloc, LoginState>(
@@ -57,11 +51,17 @@ class _LoginFormState extends State<LoginForm> {
           );
         }
 
+        // New logic: Check for LoginSuccess to show the form.
         if (state is LoginSuccess) {
-          // THIS IS THE FIX:
-          // We only pop the navigator if this page was pushed onto the stack.
-          // If it was built directly (like in the MainScreen tab), we do nothing,
-          // because the MainScreen's BlocBuilder will handle the UI update.
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => ProfileCompletionPage(user: state.user),
+            ),
+          );
+        }
+
+        // New logic: Check for LoginCompleted to navigate directly to the app.
+        if (state is LoginCompleted) {
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop(true);
           }
@@ -75,26 +75,39 @@ class _LoginFormState extends State<LoginForm> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                      labelText: 'Username', border: OutlineInputBorder()),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _onGoogleLoginButtonPressed,
+                      icon: const Icon(Icons.gamepad),
+                      label: const Text('Log in with Google'),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      onPressed: _onFacebookLoginButtonPressed,
+                      icon: const Icon(Icons.facebook),
+                      label: const Text('Log in with Facebook'),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      onPressed: _onLineLoginButtonPressed,
+                      icon: const Icon(Icons.line_style),
+                      label: const Text('Log in with Line'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                      labelText: 'Password', border: OutlineInputBorder()),
-                  obscureText: true,
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterPage(),
+                      ),
+                    );
+                  },
+                  child: const Text('Don\'t have an account? Register'),
                 ),
-                const SizedBox(height: 24),
-                if (state is LoginLoading)
-                  const Center(child: CircularProgressIndicator())
-                else
-                  ElevatedButton(
-                    onPressed: _onLoginButtonPressed,
-                    child: const Text('LOGIN'),
-                  ),
               ],
             ),
           );
