@@ -7,6 +7,7 @@
 # General application configuration
 import Config
 
+
 config :marketplace,
   ecto_repos: [Marketplace.Repo],
   generators: [timestamp_type: :utc_datetime]
@@ -24,6 +25,7 @@ config :marketplace, MarketplaceWeb.Endpoint,
 
 # Configures Elixir's Logger
 config :logger, :default_formatter,
+
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
