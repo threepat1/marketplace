@@ -1,11 +1,13 @@
-import 'package:marketplace/domain/entities/user.dart';
+import 'dart:convert';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+import 'package:marketplace/domain/entities/user.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<void> register(String username, String password);
   Future<User> googleLogin();
   Future<User> facebookLogin();
   Future<User> lineLogin();
@@ -15,14 +17,16 @@ abstract class AuthRemoteDataSource {
 
 // Simulated implementation
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+  AuthRemoteDataSourceImpl({http.Client? client, FlutterSecureStorage? storage})
+      : _client = client ?? http.Client(),
+        _secureStorage = storage ?? const FlutterSecureStorage();
+
+  static const _baseUrl = 'http://localhost:4000';
+  static const _tokenKey = 'auth_token';
+
+  final http.Client _client;
+  final FlutterSecureStorage _secureStorage;
   User? _currentUser;
-
-  @override
-  Future<void> register(String username, String password) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    print('User registered: $username');
-  }
 
   @override
   Future<void> logout() async {
@@ -33,72 +37,129 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<User?> getAuthStatus() async {
     await Future.delayed(const Duration(milliseconds: 200));
-    // In a real app, you'd check for a saved token here
+    final token = await _secureStorage.read(key: _tokenKey);
+    if (token == null) {
+      return null;
+    }
     return _currentUser;
   }
 
   @override
   Future<User> googleLogin() async {
     await Future.delayed(const Duration(seconds: 1));
-    // In a real app, you would use the google_sign_in package to get the user's account
-    // and then send the token to your backend to create or authenticate the user.
-    _currentUser =
-        const User(id: 'google_user_id', name: 'Google User', surname: '');
+    final account = await GoogleSignIn().signIn();
+    if (account == null) {
+      throw Exception('Google sign in aborted');
+    }
+    final auth = await account.authentication;
+    final idToken = auth.idToken;
+    if (idToken == null) {
+      throw Exception('Failed to obtain Google id token');
+    }
+
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/api/auth/google'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'id_token': idToken}),
+    );
+
+    if (response.statusCode != 200) {
+      final message = _extractError(response.body);
+      throw Exception(message);
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final token = data['token'] as String;
+    _currentUser = _userFromJson(data['user'] as Map<String, dynamic>);
+    await _secureStorage.write(key: _tokenKey, value: token);
     return _currentUser!;
   }
 
   @override
   @override
   Future<User> facebookLogin() async {
-    await Future.delayed(const Duration(seconds: 1));
-    final result = await FacebookAuth.i.login(
-      permissions: [
-        'email',
-        'public_profile',
-        'user_birthday',
-        'user_friends',
-        'user_gender',
-        'user_link'
-      ],
+    final result = await FacebookAuth.instance.login(
+      permissions: const ['email', 'public_profile'],
     );
-    if (result.status == LoginStatus.success) {
-      final userData = await FacebookAuth.i.getUserData(
-        fields: "name,email,picture.width(200),birthday,gender",
-      );
-      // Insert the user data into _currentUser
-      _currentUser = User(
-        id: '',
-        name: userData['name'] as String,
-        surname: '',
-        email: userData['email'] as String?,
-        birthday: userData['birthday'] as String?,
-        gender: userData['gender'] as String?,
-      );
-    } else {
-      // Handle login failure
-      // For example, throw an exception
-      throw Exception('Facebook login failed: ${result.message}');
+
+    if (result.status != LoginStatus.success) {
+      throw Exception(result.message ?? 'Facebook login failed');
     }
+
+    final accessToken = result.accessToken?.token;
+    if (accessToken == null) {
+      throw Exception('Failed to obtain Facebook access token');
+    }
+
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/api/auth/facebook'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'access_token': accessToken}),
+    );
+    if (response.statusCode != 200) {
+      final message = _extractError(response.body);
+      throw Exception(message);
+    }
+    // Return _currentUser
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final token = data['token'] as String;
+    _currentUser = _userFromJson(data['user'] as Map<String, dynamic>);
+    await _secureStorage.write(key: _tokenKey, value: token);
     // Return _currentUser
     return _currentUser!;
   }
 
   @override
   Future<User> lineLogin() async {
-    await Future.delayed(const Duration(seconds: 1));
     final result = await LineSDK.instance.login();
-    if (result.accessToken.value != null || result.accessToken.value != "") {
-      final userData = await LineSDK.instance.getProfile();
-      _currentUser = User(
-        id: 'backend_gen_id_3',
-        name: userData.displayName,
-        surname: '', // LINE API doesn't provide a separate surname
-        email: null,
-        birthday: null,
-        gender: null,
-      );
+    final accessToken = result.accessToken.value;
+    if (accessToken.isEmpty) {
+      throw Exception('Failed to obtain LINE access token');
     }
 
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/api/auth/line'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'access_token': accessToken}),
+    );
+
+    if (response.statusCode != 200) {
+      final message = _extractError(response.body);
+      throw Exception(message);
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final token = data['token'] as String;
+    _currentUser = _userFromJson(data['user'] as Map<String, dynamic>);
+    await _secureStorage.write(key: _tokenKey, value: token);
     return _currentUser!;
+  }
+
+  User _userFromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] as String? ?? '',
+      surname: json['surname'] as String? ?? '',
+      email: json['email'] as String?,
+      birthday: json['birthday'] as String?,
+      gender: json['gender'] as String?,
+      address: json['address'] as String?,
+      subDistrict:
+          json['sub_district'] as String? ?? json['subDistrict'] as String?,
+      district: json['district'] as String?,
+      province: json['province'] as String?,
+      phoneNumber:
+          json['phone_number'] as String? ?? json['phoneNumber'] as String?,
+    );
+  }
+
+  String _extractError(String body) {
+    try {
+      final Map<String, dynamic> jsonMap = jsonDecode(body);
+      return jsonMap['error']?.toString() ?? body;
+    } catch (_) {
+      return body;
+    }
   }
 }

@@ -5,36 +5,69 @@ defmodule BackendWeb.AuthController do
   alias Backend.Users.User
 
   # --- Third-party dummy logins ---
-  def google_login(conn, %{"id_token" => _id_token}) do
-    user_attrs = %{
-      google_id: "dummy_google_user_id_from_token",
-      name: "Google User",
-      email: "google@example.com"
-    }
 
-    upsert_user(conn, user_attrs)
+  def google_login(conn, %{"id_token" => id_token}) do
+    with {:ok, %Req.Response{status: 200, body: body}} <-
+           Req.get("https://oauth2.googleapis.com/tokeninfo", params: [id_token: id_token]),
+         %{"sub" => google_id} <- body do
+      user_attrs = %{
+        google_id: google_id,
+        name: body["name"],
+        email: body["email"]
+      }
+
+      upsert_user(conn, user_attrs)
+    else
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(%{error: "Invalid Google token"})
+    end
   end
 
-  def facebook_login(conn, %{"access_token" => _access_token}) do
-    user_attrs = %{
-      facebook_id: "dummy_facebook_user_id_from_token",
-      name: "Facebook User",
-      email: "facebook@example.com"
-    }
+  def facebook_login(conn, %{"access_token" => access_token}) do
+    with {:ok, %Req.Response{status: 200, body: body}} <-
+           Req.get("https://graph.facebook.com/me",
+             params: [fields: "id,name,email", access_token: access_token]
+           ),
+         %{"id" => facebook_id} <- body do
+      user_attrs = %{
+        facebook_id: facebook_id,
+        name: body["name"],
+        email: body["email"]
+      }
 
-    upsert_user(conn, user_attrs)
+      upsert_user(conn, user_attrs)
+    else
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(%{error: "Invalid Facebook token"})
+    end
   end
 
-  def line_login(conn, %{"access_token" => _access_token}) do
-    user_attrs = %{
-      line_id: "dummy_line_user_id_from_token",
-      name: "LINE User"
-    }
+  def line_login(conn, %{"access_token" => access_token}) do
+    with {:ok, %Req.Response{status: 200}} <-
+           Req.get("https://api.line.me/oauth2/v2.1/verify", params: [access_token: access_token]),
+         {:ok, %Req.Response{status: 200, body: body}} <-
+           Req.get("https://api.line.me/v2/profile",
+             headers: [{"authorization", "Bearer #{access_token}"}]
+           ),
+         %{"userId" => line_id, "displayName" => name} <- body do
+      user_attrs = %{
+        line_id: line_id,
+        name: name
+      }
 
-    upsert_user(conn, user_attrs)
+      upsert_user(conn, user_attrs)
+    else
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(%{error: "Invalid LINE token"})
+    end
   end
 
-  # --- Update user profile ---
   def update_profile(conn, %{"id" => id, "user" => user_params}) do
     case Repo.get(User, id) do
       nil ->
@@ -59,54 +92,40 @@ defmodule BackendWeb.AuthController do
     end
   end
 
-  # --- Private helper for upsert ---
-  defp upsert_user(conn, user_attrs) do
-    # Determine the provider field dynamically
-    provider_field =
-      cond do
-        Map.has_key?(user_attrs, :google_id) -> :google_id
-        Map.has_key?(user_attrs, :facebook_id) -> :facebook_id
-        Map.has_key?(user_attrs, :line_id) -> :line_id
-      end
+  # --- Helpers ---
 
-    # Try to fetch user by provider ID only
-    user =
-      case Repo.get_by(User, [{provider_field, Map.get(user_attrs, provider_field)}]) do
-        nil ->
-          %User{}
-          |> User.third_party_changeset(user_attrs)
-          |> Repo.insert!()
+  defp upsert_user(conn, attrs) do
+    case Repo.get_by(User, email: attrs[:email]) do
+      nil ->
+        %User{}
+        |> User.changeset(attrs)
+        |> Repo.insert()
+        |> case do
+          {:ok, user} ->
+            json(conn, %{user: user})
 
-        user ->
-          user
-      end
+          {:error, changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{errors: traverse_errors(changeset)})
+        end
 
-    complete =
-      user.surname && user.surname != "" && user.email && user.email != ""
+      user ->
+        user
+        |> User.changeset(attrs)
+        |> Repo.update()
+        |> case do
+          {:ok, user} ->
+            json(conn, %{user: user})
 
-    {:ok, token, _claims} = Backend.Guardian.encode_and_sign(user)
-
-    conn
-    |> put_status(
-      if Repo.get_by(User, [{provider_field, Map.get(user_attrs, provider_field)}]),
-        do: 200,
-        else: 201
-    )
-    |> json(%{
-      user: %{
-        id: user.id,
-        name: user.name,
-        surname: user.surname,
-        email: user.email,
-        birthday: user.birthday,
-        gender: user.gender,
-        complete: complete
-      },
-      token: token
-    })
+          {:error, changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{errors: traverse_errors(changeset)})
+        end
+    end
   end
 
-  # Helper to render changeset errors
   defp traverse_errors(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
       Enum.reduce(opts, msg, fn {key, value}, acc ->
