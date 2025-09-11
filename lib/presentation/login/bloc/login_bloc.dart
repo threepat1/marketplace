@@ -24,6 +24,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<GoogleLoginButtonPressed>(_onGoogleLoginButtonPressed);
     on<FacebookLoginButtonPressed>(_onFacebookLoginButtonPressed);
     on<LineLoginButtonPressed>(_onLineLoginButtonPressed);
+    on<ProfileSubmittedCompleted>(
+        (event, emit) => emit(LoginCompleted())); // Add this handler
   }
 
   Future<void> _onGoogleLoginButtonPressed(

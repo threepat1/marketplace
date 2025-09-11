@@ -38,6 +38,8 @@ abstract class ProfileCompletionState extends Equatable {
   List<Object> get props => [];
 }
 
+class ProfileFormClosed extends ProfileCompletionEvent {}
+
 class ProfileInitial extends ProfileCompletionState {}
 
 class ProfileLoading extends ProfileCompletionState {}
@@ -65,6 +67,14 @@ class ProfileCompletionBloc
     extends Bloc<ProfileCompletionEvent, ProfileCompletionState> {
   ProfileCompletionBloc() : super(ProfileInitial()) {
     on<ProfileSubmitted>(_onProfileSubmitted);
+    on<ProfileFormClosed>(_onProfileFormClosed);
+  }
+  void _onProfileFormClosed(
+    ProfileFormClosed event,
+    Emitter<ProfileCompletionState> emit,
+  ) {
+    // This state can be used to tell the LoginBloc that the user did not complete the profile.
+    emit(ProfileFailure(error: 'Profile completion was canceled.'));
   }
 
   Future<void> _onProfileSubmitted(
@@ -88,7 +98,6 @@ class ProfileCompletionBloc
       // In a real app, this would be a repository call.
       // E.g., final result = await userRepository.updateProfile(updatedUser);
 
-      print('Updating user profile for ID: ${updatedUser.id}');
       emit(ProfileSuccess(user: updatedUser));
     } catch (error) {
       emit(ProfileFailure(error: error.toString()));

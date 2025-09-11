@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketplace/presentation/login/bloc/login_bloc.dart';
 import 'package:marketplace/presentation/profile_form/profile_form.dart';
-import 'package:marketplace/presentation/register/register_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -98,16 +97,6 @@ class _LoginFormState extends State<LoginForm> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterPage(),
-                      ),
-                    );
-                  },
-                  child: const Text('Don\'t have an account? Register'),
-                ),
               ],
             ),
           );
