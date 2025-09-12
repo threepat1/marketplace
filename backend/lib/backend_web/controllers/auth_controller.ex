@@ -83,7 +83,10 @@ defmodule BackendWeb.AuthController do
         |> case do
           {:ok, updated_user} ->
             conn
-            |> json(%{user: updated_user})
+            |> json(%{
+              user: updated_user,
+              complete: profile_complete?(updated_user)
+            })
 
           {:error, changeset} ->
             conn
@@ -104,7 +107,7 @@ defmodule BackendWeb.AuthController do
         |> case do
           {:ok, user} ->
             {:ok, token, _claims} = Guardian.encode_and_sign(user)
-            json(conn, %{token: token, user: user})
+            json(conn, %{token: token, user: user, complete: profile_complete?(user)})
 
           {:error, changeset} ->
             conn
@@ -119,7 +122,7 @@ defmodule BackendWeb.AuthController do
         |> case do
           {:ok, user} ->
             {:ok, token, _claims} = Guardian.encode_and_sign(user)
-            json(conn, %{token: token, user: user})
+            json(conn, %{token: token, user: user, complete: profile_complete?(user)})
 
           {:error, changeset} ->
             conn
@@ -127,6 +130,12 @@ defmodule BackendWeb.AuthController do
             |> json(%{errors: traverse_errors(changeset)})
         end
     end
+  end
+
+  defp profile_complete?(%User{} = user) do
+    Enum.all?([user.surname, user.email], fn value ->
+      is_binary(value) and String.trim(value) != ""
+    end)
   end
 
   defp traverse_errors(changeset) do

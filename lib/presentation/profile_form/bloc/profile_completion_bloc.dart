@@ -93,6 +93,7 @@ class ProfileCompletionBloc
         email: event.newEmail,
         birthday: event.newBirthday,
         gender: event.newGender,
+        complete: true,
       );
 
       // In a real app, this would be a repository call.

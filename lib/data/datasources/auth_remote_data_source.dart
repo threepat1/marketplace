@@ -70,7 +70,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final token = data['token'] as String;
-    _currentUser = _userFromJson(data['user'] as Map<String, dynamic>);
+    final complete = data['complete'] as bool? ?? false;
+    _currentUser =
+        _userFromJson(data['user'] as Map<String, dynamic>, complete: complete);
     await _secureStorage.write(key: _tokenKey, value: token);
     return _currentUser!;
   }
@@ -103,7 +105,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final token = data['token'] as String;
-    _currentUser = _userFromJson(data['user'] as Map<String, dynamic>);
+    final complete = data['complete'] as bool? ?? false;
+    _currentUser =
+        _userFromJson(data['user'] as Map<String, dynamic>, complete: complete);
     await _secureStorage.write(key: _tokenKey, value: token);
     // Return _currentUser
     return _currentUser!;
@@ -130,12 +134,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final token = data['token'] as String;
-    _currentUser = _userFromJson(data['user'] as Map<String, dynamic>);
+    final complete = data['complete'] as bool? ?? false;
+    _currentUser =
+        _userFromJson(data['user'] as Map<String, dynamic>, complete: complete);
     await _secureStorage.write(key: _tokenKey, value: token);
     return _currentUser!;
   }
 
-  User _userFromJson(Map<String, dynamic> json) {
+  User _userFromJson(Map<String, dynamic> json, {bool complete = false}) {
     return User(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
@@ -150,6 +156,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       province: json['province'] as String?,
       phoneNumber:
           json['phone_number'] as String? ?? json['phoneNumber'] as String?,
+      complete: complete,
     );
   }
 

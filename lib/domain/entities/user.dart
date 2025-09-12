@@ -12,6 +12,7 @@ class User extends Equatable {
   final String? district;
   final String? province;
   final String? phoneNumber;
+  final bool complete;
 
   const User({
     required this.id,
@@ -25,6 +26,7 @@ class User extends Equatable {
     this.district,
     this.province,
     this.phoneNumber,
+    this.complete = false,
   });
 
   @override
@@ -39,5 +41,6 @@ class User extends Equatable {
         district,
         province,
         phoneNumber,
+        complete,
       ];
 }
