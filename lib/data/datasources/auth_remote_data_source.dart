@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:marketplace/config/app_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -21,7 +22,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       : _client = client ?? http.Client(),
         _secureStorage = storage ?? const FlutterSecureStorage();
 
-  static const _baseUrl = 'http://localhost:4000';
   static const _tokenKey = 'auth_token';
 
   final http.Client _client;
@@ -58,7 +58,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     final response = await _client.post(
-      Uri.parse('$_baseUrl/api/auth/google'),
+      Uri.parse('${AppConfig.apiBaseUrl}/api/auth/google'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'id_token': idToken}),
     );
@@ -76,7 +76,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  @override
   Future<User> facebookLogin() async {
     final result = await FacebookAuth.instance.login(
       permissions: const ['email', 'public_profile'],
@@ -92,7 +91,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     final response = await _client.post(
-      Uri.parse('$_baseUrl/api/auth/facebook'),
+      Uri.parse('${AppConfig.apiBaseUrl}/api/auth/facebook'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'access_token': accessToken}),
     );
@@ -119,7 +118,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     final response = await _client.post(
-      Uri.parse('$_baseUrl/api/auth/line'),
+      Uri.parse('${AppConfig.apiBaseUrl}/api/auth/line'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'access_token': accessToken}),
     );

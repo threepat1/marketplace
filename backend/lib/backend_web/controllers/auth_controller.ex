@@ -1,6 +1,7 @@
 defmodule BackendWeb.AuthController do
   use BackendWeb, :controller
 
+  alias Backend.Guardian
   alias Backend.Repo
   alias Backend.Users.User
 
@@ -102,7 +103,8 @@ defmodule BackendWeb.AuthController do
         |> Repo.insert()
         |> case do
           {:ok, user} ->
-            json(conn, %{user: user})
+            {:ok, token, _claims} = Guardian.encode_and_sign(user)
+            json(conn, %{token: token, user: user})
 
           {:error, changeset} ->
             conn
@@ -116,7 +118,8 @@ defmodule BackendWeb.AuthController do
         |> Repo.update()
         |> case do
           {:ok, user} ->
-            json(conn, %{user: user})
+            {:ok, token, _claims} = Guardian.encode_and_sign(user)
+            json(conn, %{token: token, user: user})
 
           {:error, changeset} ->
             conn
