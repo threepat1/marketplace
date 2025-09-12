@@ -153,7 +153,7 @@ class _BiddingProductViewState extends State<BiddingProductView> {
           child: _buildTimeRemainingText(),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: _BidSection(
               product: widget.product, isAuctionOver: _isAuctionOver),
         ),

@@ -19,8 +19,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadProducts>(_onLoadProducts);
     on<PlaceBidEvent>(_onPlaceBid);
 
-    // VERIFY THIS LINE EXISTS INSIDE THE CONSTRUCTOR
-    on<ToggleViewEvent>(_onToggleView);
+    on<SetViewTypeEvent>(_onSetViewType);
   }
 
   Future<void> _onLoadProducts(
@@ -45,9 +44,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
-  // The implementation of the instruction
-  void _onToggleView(ToggleViewEvent event, Emitter<ProductState> emit) {
-    final newViewType = state.viewType == 'List' ? 'Grid' : 'List';
-    emit(state.copyWith(viewType: newViewType));
+  void _onSetViewType(SetViewTypeEvent event, Emitter<ProductState> emit) {
+    emit(state.copyWith(viewType: event.viewType));
   }
 }

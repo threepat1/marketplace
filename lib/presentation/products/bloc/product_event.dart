@@ -16,5 +16,10 @@ class PlaceBidEvent extends ProductEvent {
   List<Object> get props => [productId, bidAmount];
 }
 
-// 1. DEFINE THE MISSING ToggleViewEvent CLASS HERE
-class ToggleViewEvent extends ProductEvent {}
+class SetViewTypeEvent extends ProductEvent {
+  final String viewType;
+  const SetViewTypeEvent({required this.viewType});
+
+  @override
+  List<Object> get props => [viewType];
+}
