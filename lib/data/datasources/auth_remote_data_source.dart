@@ -105,17 +105,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<User> facebookLogin() async {
     final result = await FacebookAuth.instance.login(
-      permissions: const ['email', 'public_profile'],
+      permissions: const ['id', 'email', 'name', 'birthday'],
     );
 
-    if (result.status != LoginStatus.success) {
+    if (result.status != LoginStatus.success || result.accessToken == null) {
       throw Exception(result.message ?? 'Facebook login failed');
     }
-
-    final accessToken = result.accessToken?.token;
-    if (accessToken == null) {
-      throw Exception('Failed to obtain Facebook access token');
-    }
+    final accessToken = result.accessToken!.token;
 
     final response = await _client.post(
       Uri.parse('${AppConfig.apiBaseUrl}/api/auth/facebook'),
@@ -134,7 +130,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     _currentUser =
         _userFromJson(data['user'] as Map<String, dynamic>, complete: complete);
     await _secureStorage.write(key: _tokenKey, value: token);
-    // Return _currentUser
     return _currentUser!;
   }
 

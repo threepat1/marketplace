@@ -102,9 +102,6 @@ class ProfileCompletionBloc
         },
       );
 
-      // In a real app, this would be a repository call.
-      // E.g., final result = await userRepository.updateProfile(updatedUser);
-
       emit(ProfileSuccess(user: updatedUser));
     } catch (error) {
       emit(ProfileFailure(error: error.toString()));

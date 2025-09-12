@@ -99,18 +99,18 @@ defmodule BackendWeb.AuthController do
     case Repo.get_by(User, email: attrs[:email]) do
       nil ->
         %User{}
-        | User.third_party_changeset(attrs)
-          |> Repo.insert()
-          |> case do
-            {:ok, user} ->
-              {:ok, token, _claims} = Guardian.encode_and_sign(user)
-              json(conn, %{token: token, user: user, complete: profile_complete?(user)})
+        |> User.third_party_changeset(attrs)
+        |> Repo.insert()
+        |> case do
+          {:ok, user} ->
+            {:ok, token, _claims} = Guardian.encode_and_sign(user)
+            json(conn, %{token: token, user: user, complete: profile_complete?(user)})
 
-            {:error, changeset} ->
-              conn
-              |> put_status(:unprocessable_entity)
-              |> json(%{errors: traverse_errors(changeset)})
-          end
+          {:error, changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{errors: traverse_errors(changeset)})
+        end
 
       user ->
         user
