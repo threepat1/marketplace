@@ -7,6 +7,7 @@ import 'package:marketplace/presentation/products/bloc/product_bloc.dart';
 import 'package:marketplace/domain/entities/product.dart';
 import 'package:marketplace/presentation/login/login_page.dart';
 import 'package:marketplace/presentation/products/product_detail_page.dart';
+import 'package:marketplace/presentation/profile_form/profile_form.dart';
 
 class BiddingProductView extends StatefulWidget {
   final Product product;
@@ -195,6 +196,18 @@ class _BidSection extends StatelessWidget {
           onPressed: () async {
             final authState = context.read<AuthenticationBloc>().state;
             if (authState is AuthenticationAuthenticated) {
+              final user = authState.user;
+              final surnameMissing = user.surname.trim().isEmpty;
+              final emailMissing =
+                  user.email == null || user.email!.trim().isEmpty;
+              if (surnameMissing || emailMissing) {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ProfileCompletionPage(user: user),
+                  ),
+                );
+                return;
+              }
               _placeBid(context, bidController.text);
             } else {
               final loginSuccess = await Navigator.of(context).push<bool>(

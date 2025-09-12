@@ -14,6 +14,7 @@ abstract class AuthRemoteDataSource {
   Future<User> lineLogin();
   Future<void> logout();
   Future<User?> getAuthStatus();
+  Future<User> updateProfile(String userId, Map<String, dynamic> fields);
 }
 
 // Simulated implementation
@@ -45,6 +46,30 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
+  Future<User> updateProfile(String userId, Map<String, dynamic> fields) async {
+    final token = await _secureStorage.read(key: _tokenKey);
+    final response = await _client.patch(
+      Uri.parse('${AppConfig.apiBaseUrl}/api/users/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(fields),
+    );
+
+    if (response.statusCode != 200) {
+      final message = _extractError(response.body);
+      throw Exception(message);
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final userMap =
+        (data['user'] as Map<String, dynamic>?) ?? data; // fallback to root
+    _currentUser = _userFromJson(userMap);
+    return _currentUser!;
+  }
+
+  @override
   Future<User> googleLogin() async {
     await Future.delayed(const Duration(seconds: 1));
     final account = await GoogleSignIn().signIn();
@@ -70,7 +95,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final token = data['token'] as String;
-    _currentUser = _userFromJson(data['user'] as Map<String, dynamic>);
+    final complete = data['complete'] as bool? ?? false;
+    _currentUser =
+        _userFromJson(data['user'] as Map<String, dynamic>, complete: complete);
     await _secureStorage.write(key: _tokenKey, value: token);
     return _currentUser!;
   }
@@ -103,7 +130,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final token = data['token'] as String;
-    _currentUser = _userFromJson(data['user'] as Map<String, dynamic>);
+    final complete = data['complete'] as bool? ?? false;
+    _currentUser =
+        _userFromJson(data['user'] as Map<String, dynamic>, complete: complete);
     await _secureStorage.write(key: _tokenKey, value: token);
     // Return _currentUser
     return _currentUser!;
@@ -130,12 +159,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final token = data['token'] as String;
-    _currentUser = _userFromJson(data['user'] as Map<String, dynamic>);
+    final complete = data['complete'] as bool? ?? false;
+    _currentUser =
+        _userFromJson(data['user'] as Map<String, dynamic>, complete: complete);
     await _secureStorage.write(key: _tokenKey, value: token);
     return _currentUser!;
   }
 
-  User _userFromJson(Map<String, dynamic> json) {
+  User _userFromJson(Map<String, dynamic> json, {bool complete = false}) {
     return User(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
@@ -150,6 +181,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       province: json['province'] as String?,
       phoneNumber:
           json['phone_number'] as String? ?? json['phoneNumber'] as String?,
+      complete: complete,
     );
   }
 

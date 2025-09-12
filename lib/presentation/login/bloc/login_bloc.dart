@@ -72,20 +72,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
   // A helper method to check the user's profile completeness.
   void _checkProfileStatusAndEmit(User user, Emitter<LoginState> emit) {
-    if (_isProfileComplete(user)) {
+    if (user.complete) {
       emit(LoginCompleted());
     } else {
       emit(LoginSuccess(user: user));
     }
-  }
-
-  // A method to check if the required fields are filled.
-  bool _isProfileComplete(User user) {
-    // We assume 'surname' and 'email' are mandatory.
-    // This is where you would put your specific business logic.
-    return user.surname != null &&
-        user.surname!.isNotEmpty &&
-        user.email != null &&
-        user.email!.isNotEmpty;
   }
 }

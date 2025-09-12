@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketplace/domain/entities/user.dart';
+import 'package:marketplace/data/datasources/auth_remote_data_source.dart';
 
 // --- Events ---
 abstract class ProfileCompletionEvent extends Equatable {
@@ -65,7 +66,12 @@ class ProfileFailure extends ProfileCompletionState {
 // --- BLoC Implementation ---
 class ProfileCompletionBloc
     extends Bloc<ProfileCompletionEvent, ProfileCompletionState> {
-  ProfileCompletionBloc() : super(ProfileInitial()) {
+  final AuthRemoteDataSource _authRemoteDataSource;
+
+  ProfileCompletionBloc({AuthRemoteDataSource? authRemoteDataSource})
+      : _authRemoteDataSource =
+            authRemoteDataSource ?? AuthRemoteDataSourceImpl(),
+        super(ProfileInitial()) {
     on<ProfileSubmitted>(_onProfileSubmitted);
     on<ProfileFormClosed>(_onProfileFormClosed);
   }
@@ -84,15 +90,15 @@ class ProfileCompletionBloc
     emit(ProfileLoading());
     try {
       // Simulate an API call to a backend to update the user's profile.
-      await Future.delayed(const Duration(seconds: 1));
-
-      final updatedUser = User(
-        id: event.user.id,
-        name: event.newName,
-        surname: event.newSurname,
-        email: event.newEmail,
-        birthday: event.newBirthday,
-        gender: event.newGender,
+      final updatedUser = await _authRemoteDataSource.updateProfile(
+        event.user.id,
+        {
+          'name': event.newName,
+          'surname': event.newSurname,
+          'email': event.newEmail,
+          'birthday': event.newBirthday,
+          'gender': event.newGender,
+        },
       );
 
       // In a real app, this would be a repository call.
