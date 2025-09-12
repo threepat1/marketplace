@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketplace/domain/entities/user.dart';
 import 'package:marketplace/presentation/profile_form/bloc/profile_completion_bloc.dart';
+import 'package:marketplace/presentation/login/bloc/login_bloc.dart';
 
 class ProfileCompletionPage extends StatelessWidget {
   final User user;
@@ -122,7 +123,8 @@ class _ProfileCompletionFormState extends State<ProfileCompletionForm> {
                 backgroundColor: Colors.green,
               ),
             );
-            Navigator.of(context).pop();
+            context.read<LoginBloc>().add(ProfileSubmittedCompleted());
+            Navigator.of(context).pop(true);
           } else if (state is ProfileFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

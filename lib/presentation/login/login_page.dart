@@ -52,7 +52,7 @@ class _LoginFormState extends State<LoginForm> {
 
         // New logic: Check for LoginSuccess to show the form.
         if (state is LoginSuccess) {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => ProfileCompletionPage(user: state.user),
             ),
