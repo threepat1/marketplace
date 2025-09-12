@@ -72,7 +72,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<User> googleLogin() async {
     await Future.delayed(const Duration(seconds: 1));
-    final account = await GoogleSignIn().signIn();
+    final googleSignIn =
+        GoogleSignIn(serverClientId: AppConfig.googleServerClientId);
+    final account = await googleSignIn.signIn();
     if (account == null) {
       throw Exception('Google sign in aborted');
     }

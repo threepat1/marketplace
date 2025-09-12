@@ -18,7 +18,8 @@ defmodule BackendWeb.Router do
   end
 
   scope "/api", BackendWeb do
-    pipe_through([:api, :auth])
+    # pipe_through([:api, :auth])
+    pipe_through(:api)
     resources("/products", ProductController, only: [:create, :update, :delete])
     put("/users/:id", AuthController, :update_profile)
   end

@@ -169,37 +169,40 @@ class _BidSection extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: () async {
-            final authState = context.read<AuthenticationBloc>().state;
-            if (authState is AuthenticationAuthenticated) {
-              final user = authState.user;
-              final surnameMissing = user.surname.trim().isEmpty;
-              final emailMissing =
-                  user.email == null || user.email!.trim().isEmpty;
-              if (surnameMissing || emailMissing) {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => ProfileCompletionPage(user: user),
-                  ),
-                );
-                return;
-              }
-              _placeBid(context, bidController.text);
-            } else {
-              // Navigate to login and wait for a result
-              final loginSuccess = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-              );
-              if (loginSuccess == true && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('Login Successful! You can now place your bid.'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-            }
+          // onPressed: () async {
+          // final authState = context.read<AuthenticationBloc>().state;
+          // if (authState is AuthenticationAuthenticated) {
+          //   final user = authState.user;
+          //   final surnameMissing = user.surname.trim().isEmpty;
+          //   final emailMissing =
+          //       user.email == null || user.email!.trim().isEmpty;
+          //   if (surnameMissing || emailMissing) {
+          //     await Navigator.of(context).push(
+          //       MaterialPageRoute(
+          //         builder: (_) => ProfileCompletionPage(user: user),
+          //       ),
+          //     );
+          //     return;
+          //   }
+          //   _placeBid(context, bidController.text);
+          // } else {
+          //   // Navigate to login and wait for a result
+          //   final loginSuccess = await Navigator.of(context).push<bool>(
+          //     MaterialPageRoute(builder: (_) => const LoginPage()),
+          //   );
+          //   if (loginSuccess == true && context.mounted) {
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       const SnackBar(
+          //         content:
+          //             Text('Login Successful! You can now place your bid.'),
+          //         backgroundColor: Colors.green,
+          //       ),
+          //     );
+          //   }
+
+          // }
+          onPressed: () {
+            _placeBid(context, bidController.text);
           },
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),

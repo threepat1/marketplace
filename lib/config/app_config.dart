@@ -8,4 +8,13 @@ class AppConfig {
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:4000',
   );
+
+  /// OAuth server client ID for Google Sign-In.
+  ///
+  /// Provide at build time with
+  /// `--dart-define=GOOGLE_SERVER_CLIENT_ID=your_client_id`.
+  static const googleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue: '',
+  );
 }
