@@ -98,6 +98,7 @@ class ProfileCompletionBloc
           'email': event.newEmail,
           'birthday': event.newBirthday,
           'gender': event.newGender,
+          'complete': true
         },
       );
 
