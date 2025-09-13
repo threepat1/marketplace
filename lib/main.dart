@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketplace/data/datasources/auth_remote_data_source.dart';
 import 'package:marketplace/data/datasources/product_remote_data_source.dart';
+import 'package:marketplace/data/datasources/user_local_data_source.dart';
 import 'package:marketplace/data/repositories/auth_repository_impl.dart';
 import 'package:marketplace/data/repositories/product_repository_impl.dart';
 import 'package:marketplace/domain/repositories/auth_repository.dart';
@@ -36,6 +37,9 @@ class MyApp extends StatelessWidget {
         RepositoryProvider<AuthRemoteDataSource>(
           create: (context) => AuthRemoteDataSourceImpl(),
         ),
+        RepositoryProvider<UserLocalDataSource>(
+          create: (context) => UserLocalDataSourceImpl(),
+        ),
         // REPOSITORIES
         RepositoryProvider<ProductRepository>(
           create: (context) => ProductRepositoryImpl(
@@ -45,6 +49,7 @@ class MyApp extends StatelessWidget {
         RepositoryProvider<AuthRepository>(
           create: (context) => AuthRepositoryImpl(
             remoteDataSource: context.read<AuthRemoteDataSource>(),
+            localDataSource: context.read<UserLocalDataSource>(),
           ),
         ),
       ],

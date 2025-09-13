@@ -35,7 +35,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginLoading());
     try {
       final user = await googleLoginUseCase(NoParams());
-      authenticationBloc.add(LoggedIn(user: user));
+      authenticationBloc.add(LoggedIn());
       _checkProfileStatusAndEmit(user, emit);
     } catch (error) {
       emit(LoginFailure(error: error.toString()));
@@ -49,7 +49,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginLoading());
     try {
       final user = await facebookLoginUseCase(NoParams());
-      authenticationBloc.add(LoggedIn(user: user));
+      authenticationBloc.add(LoggedIn());
       _checkProfileStatusAndEmit(user, emit);
     } catch (error) {
       emit(LoginFailure(error: error.toString()));
@@ -63,7 +63,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginLoading());
     try {
       final user = await lineLoginUseCase(NoParams());
-      authenticationBloc.add(LoggedIn(user: user));
+      authenticationBloc.add(LoggedIn());
       _checkProfileStatusAndEmit(user, emit);
     } catch (error) {
       emit(LoginFailure(error: error.toString()));
