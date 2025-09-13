@@ -14,18 +14,45 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Profile'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              children: [
+                InkWell(
+                  onTap: () {},
+                  child: Icon(Icons.settings),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                InkWell(
+                  onTap: () {},
+                  child: Icon(Icons.shopping_cart),
+                )
+              ],
+            ),
+          )
+        ],
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const Icon(Icons.account_circle,
-                size: 120, color: Colors.blueAccent),
-            const SizedBox(height: 20),
-            Text(
-              // 2. ACCESS THE NAME from the user object
-              'Welcome, ${user.name}!',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const Icon(Icons.account_circle,
+                    size: 40, color: Colors.blueAccent),
+                const SizedBox(width: 20),
+                Text(
+                  // 2. ACCESS THE NAME from the user object
+                  '${user.name}',
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
             const SizedBox(height: 40),
             ElevatedButton.icon(
