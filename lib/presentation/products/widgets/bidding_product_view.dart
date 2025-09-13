@@ -185,7 +185,9 @@ class _BidSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final bidController = TextEditingController();
-    bidController.text = (product.currentBid + 20).toStringAsFixed(2);
+
+    bidController.text =
+        (product.currentBid + product.bidIncrement).toStringAsFixed(2);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -194,10 +196,12 @@ class _BidSection extends StatelessWidget {
           child: TextField(
             controller: bidController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 8),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              border: const OutlineInputBorder(),
               labelText: 'Bid',
+              helperText:
+                  "Minimum increment: +${product.bidIncrement.toStringAsFixed(2)} ฿",
             ),
           ),
         ),
@@ -246,15 +250,15 @@ class _BidSection extends StatelessWidget {
   void _placeBid(BuildContext context, String bidText) {
     final bidAmount = double.tryParse(bidText);
     if (bidAmount != null) {
-      if (bidAmount > product.currentBid) {
-        // THIS IS THE CORRECTED LINE
+      if (bidAmount >= product.currentBid + product.bidIncrement) {
         context
             .read<ProductBloc>()
             .add(PlaceBidEvent(productId: product.id, bidAmount: bidAmount));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Your bid must be higher than the current bid."),
+          SnackBar(
+            content: Text(
+                "Your bid must be at least +${product.bidIncrement.toStringAsFixed(2)} higher."),
             backgroundColor: Colors.orange,
           ),
         );
