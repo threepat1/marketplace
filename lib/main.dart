@@ -57,12 +57,6 @@ class MyApp extends StatelessWidget {
             )..add(AppStarted()),
           ),
           BlocProvider(
-            create: (context) => ProductBloc(
-              getProducts: GetProducts(context.read<ProductRepository>()),
-              placeBid: PlaceBid(context.read<ProductRepository>()),
-            )..add(LoadProducts()),
-          ),
-          BlocProvider(
             create: (context) {
               final authRepository = context.read<AuthRepository>();
               return LoginBloc(
@@ -71,6 +65,19 @@ class MyApp extends StatelessWidget {
                 facebookLoginUseCase: FacebookLogin(authRepository),
                 lineLoginUseCase: LineLogin(authRepository),
               );
+            },
+          ),
+          BlocProvider(
+            create: (context) {
+              final bloc = ProductBloc(
+                getProducts: GetProducts(context.read<ProductRepository>()),
+                placeBid: PlaceBid(context.read<ProductRepository>()),
+              );
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                bloc.add(LoadProducts());
+              });
+              return bloc;
             },
           ),
         ],

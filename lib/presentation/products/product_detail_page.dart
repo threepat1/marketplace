@@ -18,7 +18,6 @@ class ProductDetailPage extends StatelessWidget {
         title: Text(product.name),
       ),
       body: BlocBuilder<ProductBloc, ProductState>(
-        // Rebuilds the detail page if the specific product's data changes
         buildWhen: (previous, current) {
           final previousProduct = previous.products
               .firstWhere((p) => p.id == product.id, orElse: () => product);
@@ -27,16 +26,17 @@ class ProductDetailPage extends StatelessWidget {
           return previousProduct != currentProduct;
         },
         builder: (context, state) {
-          // Always get the most up-to-date product from the state
           final displayedProduct = state.products.firstWhere(
             (p) => p.id == product.id,
             orElse: () => product,
           );
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Product Image
                 Image.network(
                   displayedProduct.imageUrl,
                   fit: BoxFit.cover,
@@ -44,17 +44,30 @@ class ProductDetailPage extends StatelessWidget {
                   height: 250,
                 ),
                 const SizedBox(height: 16),
+
+                // Title
                 Text(
                   displayedProduct.name,
                   style: const TextStyle(
                       fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
+
+                // Description
                 Text(
                   displayedProduct.description,
                   style: const TextStyle(fontSize: 16),
                 ),
                 const Divider(height: 32),
+
+                // NEW: Category, Location, Created By
+                Text("Category: ${displayedProduct.fullCategoryPath}"),
+                Text("Created by: ${displayedProduct.createdBy}"),
+                Text(
+                    "Location: ${displayedProduct.province}, ${displayedProduct.postcode}"),
+                const Divider(height: 32),
+
+                // Auction section
                 _AuctionStatus(product: displayedProduct),
               ],
             ),
@@ -153,7 +166,8 @@ class _BidSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bidController = TextEditingController();
-    bidController.text = (product.currentBid + 20).toStringAsFixed(2);
+    bidController.text =
+        (product.currentBid + product.bidIncrement).toStringAsFixed(2);
 
     return Row(
       children: [
@@ -161,46 +175,16 @@ class _BidSection extends StatelessWidget {
           child: TextField(
             controller: bidController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
               labelText: 'Your Bid',
+              helperText:
+                  "Minimum increment: +${product.bidIncrement.toStringAsFixed(2)} ฿",
             ),
           ),
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          // onPressed: () async {
-          // final authState = context.read<AuthenticationBloc>().state;
-          // if (authState is AuthenticationAuthenticated) {
-          //   final user = authState.user;
-          //   final surnameMissing = user.surname.trim().isEmpty;
-          //   final emailMissing =
-          //       user.email == null || user.email!.trim().isEmpty;
-          //   if (surnameMissing || emailMissing) {
-          //     await Navigator.of(context).push(
-          //       MaterialPageRoute(
-          //         builder: (_) => ProfileCompletionPage(user: user),
-          //       ),
-          //     );
-          //     return;
-          //   }
-          //   _placeBid(context, bidController.text);
-          // } else {
-          //   // Navigate to login and wait for a result
-          //   final loginSuccess = await Navigator.of(context).push<bool>(
-          //     MaterialPageRoute(builder: (_) => const LoginPage()),
-          //   );
-          //   if (loginSuccess == true && context.mounted) {
-          //     ScaffoldMessenger.of(context).showSnackBar(
-          //       const SnackBar(
-          //         content:
-          //             Text('Login Successful! You can now place your bid.'),
-          //         backgroundColor: Colors.green,
-          //       ),
-          //     );
-          //   }
-
-          // }
           onPressed: () {
             _placeBid(context, bidController.text);
           },
@@ -216,15 +200,15 @@ class _BidSection extends StatelessWidget {
   void _placeBid(BuildContext context, String bidText) {
     final bidAmount = double.tryParse(bidText);
     if (bidAmount != null) {
-      if (bidAmount > product.currentBid) {
-        // THIS IS THE CORRECTED LINE
+      if (bidAmount >= product.currentBid + product.bidIncrement) {
         context
             .read<ProductBloc>()
             .add(PlaceBidEvent(productId: product.id, bidAmount: bidAmount));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Your bid must be higher than the current bid."),
+          SnackBar(
+            content: Text(
+                "Your bid must be at least +${product.bidIncrement.toStringAsFixed(2)} higher."),
             backgroundColor: Colors.orange,
           ),
         );

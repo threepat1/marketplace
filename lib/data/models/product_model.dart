@@ -9,6 +9,15 @@ class ProductModel extends Equatable {
   final DateTime endTime;
   final String imageUrl;
 
+  /// Stored as path: "Pet/Dog/Corgi/Male"
+  final String categoryPath;
+
+  /// NEW FIELDS
+  final String createdBy;
+  final String province;
+  final String postcode;
+  final double bidIncrement;
+
   const ProductModel({
     required this.id,
     required this.name,
@@ -16,9 +25,14 @@ class ProductModel extends Equatable {
     required this.currentBid,
     required this.endTime,
     required this.imageUrl,
+    required this.categoryPath,
+    required this.createdBy,
+    required this.province,
+    required this.postcode,
+    required this.bidIncrement,
   });
 
-  // 1. ADD THIS METHOD TO CONVERT THE MODEL TO A DOMAIN ENTITY
+  /// Model → Entity
   Product toEntity() {
     return Product(
       id: id,
@@ -27,12 +41,15 @@ class ProductModel extends Equatable {
       currentBid: currentBid,
       endTime: endTime,
       imageUrl: imageUrl,
-      // The winner and winningBid fields are not part of the model,
-      // so they will be null by default in the entity, which is correct.
+      categories: categoryPath.split("/"),
+      createdBy: createdBy,
+      province: province,
+      postcode: postcode,
+      bidIncrement: bidIncrement,
     );
   }
 
-  // 2. (BEST PRACTICE) ADD A FACTORY FOR CONVERTING FROM AN ENTITY
+  /// Entity → Model
   factory ProductModel.fromEntity(Product product) {
     return ProductModel(
       id: product.id,
@@ -41,10 +58,22 @@ class ProductModel extends Equatable {
       currentBid: product.currentBid,
       endTime: product.endTime,
       imageUrl: product.imageUrl,
+      categoryPath: product.categories.join("/"),
+      createdBy: product.createdBy,
+      province: product.province,
+      postcode: product.postcode,
+      bidIncrement: product.bidIncrement,
     );
   }
 
-  ProductModel copyWith({double? currentBid}) {
+  ProductModel copyWith({
+    double? currentBid,
+    String? categoryPath,
+    String? createdBy,
+    String? province,
+    String? postcode,
+    double? bidIncrement,
+  }) {
     return ProductModel(
       id: id,
       name: name,
@@ -52,10 +81,26 @@ class ProductModel extends Equatable {
       currentBid: currentBid ?? this.currentBid,
       endTime: endTime,
       imageUrl: imageUrl,
+      categoryPath: categoryPath ?? this.categoryPath,
+      createdBy: createdBy ?? this.createdBy,
+      province: province ?? this.province,
+      postcode: postcode ?? this.postcode,
+      bidIncrement: bidIncrement ?? this.bidIncrement,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [id, name, description, currentBid, endTime, imageUrl];
+  List<Object?> get props => [
+        id,
+        name,
+        description,
+        currentBid,
+        endTime,
+        imageUrl,
+        categoryPath,
+        createdBy,
+        province,
+        postcode,
+        bidIncrement,
+      ];
 }

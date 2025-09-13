@@ -109,7 +109,17 @@ class _BiddingProductViewState extends State<BiddingProductView> {
 
   Widget _buildListTile(BuildContext context) {
     return ListTile(
-      leading: Image.network(widget.product.imageUrl, width: 50, height: 50),
+      leading: SizedBox(
+        width: 60,
+        height: 60,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            widget.product.imageUrl,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
       title: Text(widget.product.name),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

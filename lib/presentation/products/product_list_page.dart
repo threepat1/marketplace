@@ -4,20 +4,27 @@ import 'package:marketplace/presentation/products/widgets/bidding_product_view.d
 import 'package:marketplace/presentation/products/bloc/product_bloc.dart';
 import 'package:marketplace/domain/entities/product.dart';
 
-class _Category {
-  final IconData icon;
-  final String name;
-
-  const _Category(this.icon, this.name);
-}
-
 class ProductListPage extends StatelessWidget {
   const ProductListPage({super.key});
   final List<String> _categories = const [
-    'All',
-    'Electronics',
+    'All category',
+    'Antiques & Collectibles',
+    'Art',
+    'Boats & Aviation',
+    'Business & Industrial',
+    'Cars & Vehicles',
+    'Coins & Currency',
+    'Computers & Electronics',
+    'Construction & Farm',
     'Fashion',
-    'Books',
+    'Furniture',
+    'Home Goods & Decor',
+    'Jewelry, Watches & Gemstones',
+    'Kid & Baby Essentials',
+    'Lawn & Garden',
+    'Real Estate',
+    'Sporting Goods',
+    'Toys',
   ];
 
   @override
@@ -27,16 +34,26 @@ class ProductListPage extends StatelessWidget {
           title: const Text('Product Bidding'),
         ),
         body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(
-            height: 60,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10),
-                  child: Chip(label: Text(_categories[index])),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: BlocBuilder<ProductBloc, ProductState>(
+              builder: (context, state) {
+                return DropdownButton<String>(
+                  isExpanded: true,
+                  value: state.selectedCategory.isNotEmpty
+                      ? state.selectedCategory
+                      : _categories.first,
+                  items: _categories
+                      .map((category) => DropdownMenuItem(
+                          value: category, child: Text(category)))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      context
+                          .read<ProductBloc>()
+                          .add(SetCategoryEvent(category: value));
+                    }
+                  },
                 );
               },
             ),
@@ -67,7 +84,8 @@ class ProductListPage extends StatelessWidget {
                 if (state.status == ProductStatus.loading) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state.status == ProductStatus.success) {
-                  return _buildProductView(state.viewType, state.products);
+                  return _buildProductView(
+                      state.viewType, state.products, state.selectedCategory);
                 } else if (state.status == ProductStatus.failure) {
                   return const Center(child: Text('Failed to load products'));
                 }
@@ -78,12 +96,19 @@ class ProductListPage extends StatelessWidget {
         ]));
   }
 
-  Widget _buildProductView(String viewType, List<Product> products) {
+  Widget _buildProductView(
+      String viewType, List<Product> products, String selectedCategory) {
+    final filteredProducts = selectedCategory == "All category"
+        ? products
+        : products
+            .where((p) => p.fullCategoryPath == selectedCategory)
+            .toList();
+
     if (viewType == "List") {
       return ListView.builder(
-        itemCount: products.length,
+        itemCount: filteredProducts.length,
         itemBuilder: (context, index) {
-          final product = products[index];
+          final product = filteredProducts[index];
           return BiddingProductView(product: product);
         },
       );
@@ -96,9 +121,9 @@ class ProductListPage extends StatelessWidget {
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
         ),
-        itemCount: products.length,
+        itemCount: filteredProducts.length,
         itemBuilder: (context, index) {
-          final product = products[index];
+          final product = filteredProducts[index];
           return BiddingProductView(product: product, isGridView: true);
         },
       );

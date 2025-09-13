@@ -47,4 +47,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   void _onSetViewType(SetViewTypeEvent event, Emitter<ProductState> emit) {
     emit(state.copyWith(viewType: event.viewType));
   }
+
+  void _onSetCategory(SetCategoryEvent event, Emitter<ProductState> emit) {
+    emit(state.copyWith(selectedCategory: event.category));
+  }
 }

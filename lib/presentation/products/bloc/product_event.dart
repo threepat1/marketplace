@@ -23,3 +23,11 @@ class SetViewTypeEvent extends ProductEvent {
   @override
   List<Object> get props => [viewType];
 }
+
+class SetCategoryEvent extends ProductEvent {
+  final String category;
+  const SetCategoryEvent({required this.category});
+
+  @override
+  List<Object> get props => [category];
+}
