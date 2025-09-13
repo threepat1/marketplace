@@ -1,0 +1,13 @@
+{
+  "id": "1",
+  "name": "Test Product",
+  "description": "Sample product description",
+  "currentBid": 100.5,
+  "endTime": "2024-05-17T12:00:00.000Z",
+  "imageUrl": "http://example.com/image.png",
+  "categoryPath": "Category/Sub",
+  "createdBy": "user001",
+  "province": "Bangkok",
+  "postcode": "10110",
+  "bidIncrement": "5.0"
+}

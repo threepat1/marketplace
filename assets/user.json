@@ -1,0 +1,53 @@
+
+{
+  "id": "user-001",
+  "username": "jane_doe",
+  "email": "jane@example.com",
+  "savedProducts": [
+    {
+      "productId": "prod-1001",
+      "name": "Vintage Chair",
+      "description": "Wooden mid-century chair",
+      "price": 150.0
+    },
+    {
+      "productId": "prod-1002",
+      "name": "Ceramic Vase",
+      "description": "Handmade decorative vase",
+      "price": 60.0
+    }
+  ],
+  "biddedProducts": [
+    {
+      "productId": "prod-2001",
+      "name": "Antique Clock",
+      "description": "19th century mantle clock",
+      "currentBid": 320.0,
+      "yourBid": 300.0
+    }
+  ],
+  "addresses": [
+    {
+      "addressId": 1,
+      "label": "Home",
+      "street": "123 Maple Street",
+      "subDistrict": "Downtown",
+      "district": "Central District",
+      "province": "Bangkok",
+      "country": "Thailand",
+      "postcode": "10330",
+      "isDefaultShipping": true
+    },
+    {
+      "addressId": 2,
+      "label": "Office",
+      "street": "456 Commerce Ave",
+      "subDistrict": "Sukhumvit",
+      "district": "Watthana",
+      "province": "Bangkok",
+      "country": "Thailand",
+      "postcode": "10110",
+      "isDefaultShipping": false
+    }
+  ]
+}

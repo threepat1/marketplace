@@ -65,6 +65,60 @@ class ProductModel extends Equatable {
       bidIncrement: product.bidIncrement,
     );
   }
+  factory ProductModel.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic value) {
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    DateTime parseDate(dynamic value) {
+      if (value is DateTime) return value;
+      if (value is int) {
+        try {
+          return DateTime.fromMillisecondsSinceEpoch(value);
+        } catch (_) {
+          return DateTime.fromMillisecondsSinceEpoch(0);
+        }
+      }
+      if (value is String) {
+        return DateTime.tryParse(value) ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+      }
+      return DateTime.fromMillisecondsSinceEpoch(0);
+    }
+
+    return ProductModel(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      currentBid: parseDouble(json['currentBid']),
+      endTime: parseDate(json['endTime']),
+      imageUrl: json['imageUrl']?.toString() ?? '',
+      categoryPath: json['categoryPath']?.toString() ?? '',
+      createdBy: json['createdBy']?.toString() ?? '',
+      province: json['province']?.toString() ?? '',
+      postcode: json['postcode']?.toString() ?? '',
+      bidIncrement: parseDouble(json['bidIncrement']),
+    );
+  }
+
+  /// Model → JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'currentBid': currentBid,
+      'endTime': endTime.toIso8601String(),
+      'imageUrl': imageUrl,
+      'categoryPath': categoryPath,
+      'createdBy': createdBy,
+      'province': province,
+      'postcode': postcode,
+      'bidIncrement': bidIncrement,
+    };
+  }
 
   ProductModel copyWith({
     double? currentBid,
