@@ -5,6 +5,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:marketplace/domain/entities/user.dart';
+import 'package:marketplace/domain/entities/address.dart';
+import 'package:marketplace/domain/entities/bidded_product.dart';
+import 'package:marketplace/domain/entities/saved_product.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 
@@ -168,6 +171,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       surname: json['surname'] as String? ?? '',
+      username: json['username'] as String? ?? '',
       email: json['email'] as String?,
       birthday: json['birthday'] as String?,
       gender: json['gender'] as String?,
@@ -179,6 +183,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       phoneNumber:
           json['phone_number'] as String? ?? json['phoneNumber'] as String?,
       complete: complete,
+      savedProducts: (json['savedProducts'] as List<dynamic>? ?? [])
+          .map((e) => SavedProduct(
+                productId: e['productId']?.toString() ?? '',
+                currentBid: (e['currentBid'] as num?)?.toDouble() ?? 0,
+              ))
+          .toList(),
+      biddedProducts: (json['biddedProducts'] as List<dynamic>? ?? [])
+          .map((e) => BiddedProduct(
+                productId: e['productId']?.toString() ?? '',
+                currentBid: (e['currentBid'] as num?)?.toDouble() ?? 0,
+                yourBid: (e['yourBid'] as num?)?.toDouble() ?? 0,
+              ))
+          .toList(),
+      addresses: (json['addresses'] as List<dynamic>? ?? [])
+          .map((e) => Address(
+                address: e['address'] as String? ?? '',
+                subDistrict: e['subDistrict'] as String? ?? '',
+                district: e['district'] as String? ?? '',
+                province: e['province'] as String? ?? '',
+                postcode: e['postcode'] as String? ?? '',
+                isDefaultShipping: e['isDefaultShipping'] as bool? ?? false,
+              ))
+          .toList(),
     );
   }
 
