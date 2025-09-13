@@ -54,19 +54,6 @@ class ProfilePage extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 40),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.logout),
-              label: const Text('LOGOUT'),
-              onPressed: () {
-                context.read<AuthenticationBloc>().add(LoggedOut());
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-              ),
-            ),
           ],
         ),
       ),
