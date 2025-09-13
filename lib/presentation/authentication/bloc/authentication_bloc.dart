@@ -30,8 +30,12 @@ class AuthenticationBloc
     }
   }
 
-  void _onLoggedIn(LoggedIn event, Emitter<AuthenticationState> emit) {
-    emit(AuthenticationAuthenticated(user: event.user));
+  Future<void> _onLoggedIn(
+      LoggedIn event, Emitter<AuthenticationState> emit) async {
+    final user = await getAuthStatus(NoParams());
+    if (user != null) {
+      emit(AuthenticationAuthenticated(user: user));
+    }
   }
 
   Future<void> _onLoggedOut(
